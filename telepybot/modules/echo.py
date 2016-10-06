@@ -1,3 +1,11 @@
+"""This module echoes everything you say.
+Usage:
+  /echo
+  /echo Hi!
+Type 'cancel' to stop echoing.
+"""
+
+
 def handle_update(bot, update, update_queue, **kwargs):
     try:
         # e.g. message is "/echo I'm talking to a bot!"

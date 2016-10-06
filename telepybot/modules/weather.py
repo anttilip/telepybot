@@ -1,5 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Returns weather forecast for a location.
+Send your location or write a citys name.
+Usage:
+  /weather
+  /weather Palo Alto, CA
+After you've received the forecast,
+you can search forecast relative to the original location.
+
+"""
 import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
 
@@ -16,10 +23,6 @@ except ImportError:
 Weather reports consist of a current weather in observation location,
 a 3 day weather forecast and distance from observation location to
 the requested location.
-
-Function process() takes a location as an input. Location can be
-a coordinate or a string query e.g "NYC". String queries translated
-to coordinates for Wunderground API.
 """
 
 

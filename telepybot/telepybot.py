@@ -3,6 +3,7 @@
 import logging
 
 from telegram.ext import CommandHandler, Updater
+
 from modulehandler import ModuleHandler
 
 # Enable logging
@@ -20,7 +21,25 @@ def start(bot, update):
 
 
 def help(bot, update):
-    bot.sendMessage(update.message.chat_id, text="Help!")
+    text = ""
+    try:
+        msg = update.message.text.split(' ', 1)[1]
+        text = module_handler.get_help(msg)
+    except IndexError:
+        text = ("To find help for modules, use module name.\n"
+                "For example try: /help echo\n"
+                "Type /list to list all modules.")
+
+    bot.sendMessage(update.message.chat_id, text=text)
+
+
+def list(bot, update):
+    modules = module_handler.module_summary()
+    text = ''
+    for name, description in modules:
+        text += '/{} - {}\n'.format(name, description)
+
+    bot.sendMessage(update.message.chat_id, text=text)
 
 
 def error(bot, update, error):
@@ -36,12 +55,17 @@ def main():
     updater = Updater(token)
 
     # Get the dispatcher to register handlers
+    global module_handler
     dp = updater.dispatcher
+
+    # Create ModuleHandler
+    module_handler = ModuleHandler(logger=logger, pass_update_queue=True)
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(ModuleHandler(logger=logger, pass_update_queue=True))
+    dp.add_handler(CommandHandler("list", list))
+    dp.add_handler(module_handler)
 
     # log all errors
     dp.add_error_handler(error)

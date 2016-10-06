@@ -73,3 +73,16 @@ class ModuleHandler(Handler):
             modules[module_key] = import_module('modules.' + module_file)
 
         return modules
+
+    def module_summary(self):
+        modules = []
+        for key in self.modules:
+            modules.append((key, self.modules[key].__doc__.split('\n')[0]))
+
+        return modules
+
+    def get_help(self, key):
+        try:
+            return self.modules[key].__doc__
+        except KeyError:
+            return "Couldn't find that module"
