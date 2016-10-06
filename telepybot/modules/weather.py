@@ -1,11 +1,18 @@
 """Returns weather forecast for a location.
-Send your location or write a citys name.
+
+This module can search weather reports using Wunderground API.
+Weather reports consist of a current weather in observation location,
+a 3 day weather forecast and distance from observation location to
+the requested location. Module also features an interactive mode where user
+can search new locations relative to the original location.
+
 Usage:
   /weather
   /weather Palo Alto, CA
-After you've received the forecast,
-you can search forecast relative to the original location.
 
+Interactive mode:
+  [distance] [cardinal direction]
+  100 NW  -  weather in 100km to northwest from original location
 """
 import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
@@ -19,11 +26,6 @@ try:
 except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen
-"""This module can search weather reports using Wunderground API.
-Weather reports consist of a current weather in observation location,
-a 3 day weather forecast and distance from observation location to
-the requested location.
-"""
 
 
 def handle_update(bot, update, update_queue, logger):

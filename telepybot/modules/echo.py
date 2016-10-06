@@ -1,7 +1,9 @@
-"""This module echoes everything you say.
+"""Echoes everything you say.
+
 Usage:
   /echo
   /echo Hi!
+
 Type 'cancel' to stop echoing.
 """
 
