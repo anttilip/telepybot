@@ -77,12 +77,17 @@ class ModuleHandler(Handler):
     def module_summary(self):
         modules = []
         for key in self.modules:
-            modules.append((key, self.modules[key].__doc__.split('\n')[0]))
-
+            try:
+                modules.append((key, self.modules[key].__doc__.split('\n')[0]))
+            except AttributeError:
+                pass
         return modules
 
     def get_help(self, key):
         try:
-            return self.modules[key].__doc__
-        except KeyError:
+            text = self.modules[key].__doc__
+            if not text:
+                raise ValueError
+            return text
+        except (KeyError, ValueError):
             return "Couldn't find that module"
