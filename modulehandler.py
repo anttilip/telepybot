@@ -16,6 +16,7 @@ class ModuleHandler(Handler):
             None,
             pass_update_queue=pass_update_queue,
             pass_job_queue=pass_job_queue)
+        self.logger = logger
         self.modules = self.get_modules()
         self.pass_args = pass_args
 
@@ -34,9 +35,12 @@ class ModuleHandler(Handler):
 
     def handle_update(self, update, dispatcher):
         optional_args = self.collect_optional_args(dispatcher)
+        optional_args['logger'] = self.logger
 
         message = update.message or update.edited_message
-        # TODO: Add optional_args
+
+        if self.pass_args:
+            optional_args['args'] = message.text.split()[1:]
 
         try:
             # e.g. /echo testing testing!
@@ -48,8 +52,7 @@ class ModuleHandler(Handler):
         key = key[1:]  # Remove '/' from the key
         module = self.modules[key]
 
-        # TODO: send update_queue and logger to modules
-        return module.handle_update(dispatcher.bot, update)
+        return module.handle_update(dispatcher.bot, update, **optional_args)
 
     def get_modules(self):
         """Loads reads json file and import found modules.
@@ -58,6 +61,9 @@ class ModuleHandler(Handler):
         module_dict = {}
         with open("modules.json", "r") as modules_json:
             module_dict = json.loads(modules_json.read())
+            if self.logger:
+                self.logger.info('Modules to be loaded: {}\n'.format(
+                    module_dict))
 
         modules = {}
 
