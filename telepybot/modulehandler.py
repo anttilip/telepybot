@@ -58,6 +58,7 @@ class ModuleHandler(Handler):
         """Loads reads json file and import found modules.
         Returns dictionaries containing the modules
         """
+
         module_dict = {}
         with open("modules.json", "r") as modules_json:
             module_dict = json.loads(modules_json.read())

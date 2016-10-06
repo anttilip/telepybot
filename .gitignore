@@ -93,3 +93,5 @@ ENV/
 ## Project spesific:
 auth
 .tmp
+telepybot/.tmp
+telepybot/auth
