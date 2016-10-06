@@ -1,4 +1,5 @@
 {
     "echo": "echo.py",
-    "stats": "stats.py"
+    "stats": "stats.py",
+    "weather": "weather.py"
 }
