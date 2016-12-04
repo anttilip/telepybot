@@ -1,5 +1,10 @@
 {
     "echo": "echo.py",
+    "ele": "elevation.py",
+    "home": "home.py",
+    "ip": "ip.py",
     "stats": "stats.py",
-    "weather": "weather.py"
+    "weather": "weather.py",
+    "wol": "wol.py",
+    "blog": "new_blog.py"
 }

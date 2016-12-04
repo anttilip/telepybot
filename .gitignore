@@ -95,3 +95,4 @@ auth
 .tmp
 telepybot/.tmp
 telepybot/auth
+telepybot/.downloads
