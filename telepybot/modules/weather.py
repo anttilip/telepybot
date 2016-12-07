@@ -18,7 +18,8 @@ import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
 
 from geopy.geocoders import Nominatim
-from telegram import ChatAction, ParseMode
+#from telegram import KeyboardButton, ParseMode, ReplyKeyboardMarkup
+import telegram
 
 try:
     # For Python 3.0 and later
@@ -30,7 +31,7 @@ except ImportError:
 
 def handle_update(bot, update, update_queue, logger):
     chat_id = update.message.chat_id
-    bot.sendChatAction(chat_id, action=ChatAction.TYPING)
+    bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
     try:
         command = update.message.text.split(' ', 1)[1]
     except IndexError:
@@ -40,18 +41,36 @@ def handle_update(bot, update, update_queue, logger):
 
     location = None
     while not location:
-        text = ("Please send a location or type a city.\nYou may also "
-                "cancel by typing \"cancel\"")
+        #text = ("Please send a location or type a city.\nYou may also "
+        #        "cancel by typing \"cancel\"")
+        text = "Please send a location or type a city."
+
         if message.location:
+            reply_markup = telegram.ReplyKeyboardHide()
+            bot.sendMessage(
+                chat_id=chat_id,
+                text="Searching forecast.",
+                reply_markup=reply_markup)
+            bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
             location = parse_location(message.location)
         elif command != '':
             if command.lower() == 'cancel':
+                reply_markup = telegram.ReplyKeyboardHide()
+                bot.sendMessage(
+                    chat_id=chat_id,
+                    text="Cancelled.",
+                    reply_markup=reply_markup)
                 return
             try:
                 geolocator = Nominatim()
                 geo_code = geolocator.geocode(command)
                 if not geo_code:
                     raise ValueError("geolocator.geocode() returned None")
+                reply_markup = telegram.ReplyKeyboardHide()
+                bot.sendMessage(
+                    chat_id=chat_id,
+                    text="Searching forecast.",
+                    reply_markup=reply_markup)
                 location = parse_location(geo_code)
             except ValueError as e:
                 logger.info("location %s caused error %s" % (command, e))
@@ -63,27 +82,36 @@ def handle_update(bot, update, update_queue, logger):
                     update_queue.put(update)
                     return
                 command = message.text
-                bot.sendChatAction(chat_id, action=ChatAction.TYPING)
+                bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
                 # TODO: fix this horrible structure
         else:
+            location_keyboard = telegram.KeyboardButton(
+                text='Send location', request_location=True)
+            reply_markup = telegram.ReplyKeyboardMarkup(
+                [[location_keyboard], ['Cancel']])
             bot.sendMessage(
-                chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
+                chat_id=chat_id, text=text, reply_markup=reply_markup)
             message = update_queue.get().message
+
             if message.text.startswith('/'):
                 # User accesses antoher module
                 update_queue.put(update)
                 return
             command = message.text
-            bot.sendChatAction(chat_id, action=ChatAction.TYPING)
+            bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
 
     report = construct_report(location)
     bot.sendMessage(
-        chat_id=chat_id, text=report, parse_mode=ParseMode.MARKDOWN)
+        chat_id=chat_id, text=report, parse_mode=telegram.ParseMode.MARKDOWN)
 
     # Interactive mode, where user can change location e.g. "100 N"
+    text = """To search weather for relative position,
+              type [distance in km] [direction], e.g. "100 N"."""
+    bot.sendMessage(chat_id=chat_id, text=text)
+
     while True:
         update = update_queue.get()
-        bot.sendChatAction(chat_id, action=ChatAction.TYPING)
+        bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
         try:
             distance, direction = update.message.text.split()
             distance = int(distance)
@@ -91,7 +119,7 @@ def handle_update(bot, update, update_queue, logger):
             bot.sendMessage(
                 chat_id=chat_id,
                 text=construct_report(new_location),
-                parse_mode=ParseMode.MARKDOWN)
+                parse_mode=telegram.ParseMode.MARKDOWN)
         except ValueError:
             if update.message.text.startswith('/'):
                 # User accesses antoher module
