@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from telegram import ChatAction, File
-from PIL import Image
+from telegram import ChatAction
 import subprocess
 import zipfile
 import os
-import re
 try:
     # For Python 3.0 and later
     from urllib.request import URLopener
@@ -12,33 +10,13 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import URLopener
 
-#project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
-#download_path = os.path.abspath('/home/pi/Projects/telepybot/telepybot/.downloads')
+# For raspberry pi
+project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
+download_path = os.path.abspath('/home/pi/Projects/telepybot/telepybot/.downloads')
+# For home desktop windows
 project_path = os.path.abspath('C:\\Users\\alips\\Projects\\flai.xyz\\assets')
 download_path = os.path.abspath('C:/Users/alips/Projects/telepybot/telepybot/.downloads')
 
-
-# def handle_update(bot, update, update_queue, **kwargs):
-#     chat_id = update.message.chat_id
-#     global chat_id
-#
-#     bot.sendMessage(chat_id=chat_id, text="Send blog file")
-#
-#     while True:
-#         update = update_queue.get()
-#         bot.sendChatAction(chat_id, action=ChatAction.TYPING)
-#         if update.message.document:
-#             parse_blog(bot, update, update_queue)
-#             return
-#         elif update.message.text.lower() == "cancel":
-#             return
-#         elif update.message.text.startswith('/'):
-#             # User accesses another bot
-#             update_queue.put(update)
-#             break
-#         else:
-#             bot.sendMessage(chat_id=chat_id, text="Send blog file")
-#
 
 def handle_update(bot, update, update_queue, **kwargs):
     chat_id = update.message.chat_id
@@ -117,15 +95,12 @@ def combine_zip(splits):
 
 
 def parse_blog(bot, chat_id, zip_path, post_name):
-    #file_id = update.message.document.file_id
-    #zippath, filename = download_file(update, bot.getFile(file_id))
-
     post_path = extract_post(zip_path, post_name)
     blog_path = os.path.dirname(post_path)
 
     bot.sendMessage(
         chat_id=chat_id, text="Converting images, this may take a while.")
-    #resize_images(post_path)
+    resize_images(post_path)
 
     construct_meta_post(post_path, post_name, blog_path)
     convert_images_to_imagegroup(post_path)
@@ -145,7 +120,6 @@ def download_file(update, data):
     urlopener.retrieve(url, file_path)
 
     return file_path
-    #return file_path, filename.rsplit('.', 1)[0]
 
 
 def extract_post(zippath, postname):
@@ -192,9 +166,6 @@ def convert_images_to_imagegroup(path):
                 # if image has caption, it can't be in image group
                 break
             _, content = line.split(': ', 1)
-            #width, height = Image.open(os.path.join(path, 'orig',
-            #                                        content)).size
-            #image_group.append('{}?{}x{}'.format(content, width, height))
             image_group.append(content)
             i += 1
         if len(image_group) > 1:
