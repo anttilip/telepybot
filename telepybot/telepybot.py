@@ -42,6 +42,11 @@ def list(bot, update):
     bot.sendMessage(update.message.chat_id, text=text)
 
 
+def reload(bot, update):
+    main()
+    bot.sendMessage(update.message.chat_id, text="Modules reloaded")
+
+
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
@@ -55,16 +60,17 @@ def main():
     updater = Updater(token)
 
     # Get the dispatcher to register handlers
-    global module_handler
     dp = updater.dispatcher
 
     # Create ModuleHandler
+    global module_handler
     module_handler = ModuleHandler(logger=logger, pass_update_queue=True)
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("list", list))
+    dp.add_handler(CommandHandler("reload", reload))
     dp.add_handler(module_handler)
 
     # log all errors
