@@ -11,11 +11,16 @@ except ImportError:
     from urllib2 import URLopener
 
 # For raspberry pi
-project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
-download_path = os.path.abspath('/home/pi/Projects/telepybot/telepybot/.downloads')
-# For home desktop windows
-project_path = os.path.abspath('C:\\Users\\alips\\Projects\\flai.xyz\\assets')
-download_path = os.path.abspath('C:/Users/alips/Projects/telepybot/telepybot/.downloads')
+if os.path.exists('/home/pi/Projects'):
+    project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
+    download_path = os.path.abspath('/home/pi/Projects/telepybot/telepybot/.downloads')
+elif os.path.exists('C:/Users/alips/Projects'):
+    # For home desktop windows
+    project_path = os.path.abspath('C:\\Users\\alips\\Projects\\flai.xyz\\assets')
+    download_path = os.path.abspath('C:/Users/alips/Projects/telepybot/telepybot/.downloads')
+else:
+    print('No valid path structure')
+    raise OSError
 
 
 def handle_update(bot, update, update_queue, **kwargs):
