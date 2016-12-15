@@ -165,7 +165,7 @@ def add_night(lines):
     return lines
 
 def save_to_file(lines):
-    route_path = '/home/pi/RaspberryPi-Scripts/jaakkolipsanen.github.io/cycle/routes/usa2016/route.txt'
+    route_path = '/home/pi/RaspberryPi-Scripts/jaakkolipsanen.github.io/cycle/routes/israel&jordan2016/route.txt'
     with open(route_path, 'a') as route:
         route.write('\n' + '\n'.join(lines))
 
