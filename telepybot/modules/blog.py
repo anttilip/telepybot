@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from telegram import ChatAction
+from telegram import ChatAction, File
 from PIL import Image
 import subprocess
 import zipfile
 import os
+import re
 try:
     # For Python 3.0 and later
     from urllib.request import URLopener
@@ -11,43 +12,123 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import URLopener
 
-project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
-download_path = os.path.abspath(
-    '/home/pi/Projects/telepybot/telepybot/.downloads')
+#project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
+#download_path = os.path.abspath('/home/pi/Projects/telepybot/telepybot/.downloads')
+project_path = os.path.abspath('C:\\Users\\alips\\Projects\\flai.xyz\\assets')
+download_path = os.path.abspath('C:/Users/alips/Projects/telepybot/telepybot/.downloads')
 
+
+# def handle_update(bot, update, update_queue, **kwargs):
+#     chat_id = update.message.chat_id
+#     global chat_id
+#
+#     bot.sendMessage(chat_id=chat_id, text="Send blog file")
+#
+#     while True:
+#         update = update_queue.get()
+#         bot.sendChatAction(chat_id, action=ChatAction.TYPING)
+#         if update.message.document:
+#             parse_blog(bot, update, update_queue)
+#             return
+#         elif update.message.text.lower() == "cancel":
+#             return
+#         elif update.message.text.startswith('/'):
+#             # User accesses another bot
+#             update_queue.put(update)
+#             break
+#         else:
+#             bot.sendMessage(chat_id=chat_id, text="Send blog file")
+#
 
 def handle_update(bot, update, update_queue, **kwargs):
     chat_id = update.message.chat_id
     bot.sendMessage(chat_id=chat_id, text="Send blog file")
 
+    zip_path, post_name = get_zip(bot, chat_id, update_queue)
+    if zip is None:
+        bot.sendMessage(chat_id=chat_id, text="No files received, aborting")
+
+    parse_blog(bot, chat_id, zip_path, post_name)
+
+
+def get_zip(bot, chat_id, update_queue):
+    zip_parts = None
     while True:
         update = update_queue.get()
+        document = update.message.document
         bot.sendChatAction(chat_id, action=ChatAction.TYPING)
-        if update.message.document:
-            parse_blog(bot, chat_id, update)
-            return
+
+        if document is not None:
+            file = download_file(update, bot.getFile(document.file_id))
+            if is_full_zip(document):
+                # file name is in format name.zip
+                post_name = document.file_name.rsplit('.', 1)[0]
+                return file, post_name
+
+            if zip_parts is None:
+                zip_parts = [None] * get_zip_part_count(document)
+
+            zip_index = get_zip_part_index(document)
+            zip_parts[zip_index] = file
+
+            if None in zip_parts:
+                bot.sendMessage(chat_id=chat_id, text='Send another split')
+            else:
+                # file name is in format name.zip.3o3
+                post_name = document.file_name.rsplit('.', 2)[0]
+                return combine_zip(zip_parts), post_name
+
         elif update.message.text.lower() == "cancel":
-            return
+            return None
+
         elif update.message.text.startswith('/'):
             # User accesses another bot
             update_queue.put(update)
-            break
+            return None
+
         else:
             bot.sendMessage(chat_id=chat_id, text="Send blog file")
 
 
-def parse_blog(bot, chat_id, update):
-    file_id = update.message.document.file_id
-    zippath, filename = download_file(update, bot.getFile(file_id))
-    postpath = extract_post(zippath, filename)
-    blogpath = os.path.dirname(postpath)
+def is_full_zip(document):
+    # Check if file name ends with '.zip'
+    return document.file_name.rsplit('.', 1)[-1] == 'zip'
+
+
+def get_zip_part_count(document):
+    # file is in format name.zip.1o3, so convert last char to int
+    return int(document.file_name[-1])
+
+
+def get_zip_part_index(document):
+    # file is in format name.zip.1o3, so convert
+    # third last char to int and start indexing from 0
+    return int(document.file_name[-3]) - 1
+
+
+def combine_zip(splits):
+    merged_path = os.path.join(download_path, 'merged.zip')
+    with open(merged_path, 'wb') as merged:
+        for file in splits:
+            with open(file, 'rb') as split:
+                merged.write(split.read())
+
+    return merged_path
+
+
+def parse_blog(bot, chat_id, zip_path, post_name):
+    #file_id = update.message.document.file_id
+    #zippath, filename = download_file(update, bot.getFile(file_id))
+
+    post_path = extract_post(zip_path, post_name)
+    blog_path = os.path.dirname(post_path)
 
     bot.sendMessage(
         chat_id=chat_id, text="Converting images, this may take a while.")
-    resize_images(postpath)
+    #resize_images(post_path)
 
-    construct_meta_post(postpath, filename, blogpath)
-    convert_images_to_imagegroup(postpath)
+    construct_meta_post(post_path, post_name, blog_path)
+    convert_images_to_imagegroup(post_path)
 
     #pb.push_note('Blog updated', filename)
     #git.commit_push(project_path, '[blog update]')
@@ -59,10 +140,12 @@ def download_file(update, data):
     filename = update.message.document.file_name
     url = data.file_path
     file_path = os.path.join(download_path, filename)
-    print(file_path)
+
     urlopener = URLopener()
     urlopener.retrieve(url, file_path)
-    return file_path, filename.rsplit('.', 1)[0]
+
+    return file_path
+    #return file_path, filename.rsplit('.', 1)[0]
 
 
 def extract_post(zippath, postname):
@@ -79,16 +162,12 @@ def resize_images(path):
 
 
 def construct_meta_post(path, filename, blogpath):
-    # TODO: kato et jaakko on fiksannu nää
-    # due to a bug the app, need to rename the posts.txt to post.txt
-    os.rename(os.path.join(path, 'posts.txt'), os.path.join(path, 'post.txt'))
-
     print(os.path.join(path, 'post.txt'))
     with open(os.path.join(path, 'post.txt'), 'r') as post:
         text = post.read()
         title, trip, date_range, main_image = \
             [x.split(' ', 1)[1] for x in text.split('\n')[0:4]]
-        main_image = main_image[:-1]
+        main_image = main_image.rsplit('?', 1)[0]
         meta = '|'.join([filename, trip, title, date_range, main_image])
 
     with open(os.path.join(os.path.dirname(blogpath), 'posts.txt'),
@@ -112,10 +191,11 @@ def convert_images_to_imagegroup(path):
             if caption != "":
                 # if image has caption, it can't be in image group
                 break
-            tag, content = line.split(': ', 1)
-            width, height = Image.open(os.path.join(path, 'orig',
-                                                    content)).size
-            image_group.append('{}?{}x{}'.format(content, width, height))
+            _, content = line.split(': ', 1)
+            #width, height = Image.open(os.path.join(path, 'orig',
+            #                                        content)).size
+            #image_group.append('{}?{}x{}'.format(content, width, height))
+            image_group.append(content)
             i += 1
         if len(image_group) > 1:
             fixed_lines.append('image-group: ' + ' '.join(image_group))
