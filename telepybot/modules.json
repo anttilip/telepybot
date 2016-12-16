@@ -6,5 +6,6 @@
     "stats": "stats.py",
     "weather": "weather.py",
     "wol": "wol.py",
-    "blog": "blog.py"
+    "blog": "blog.py",
+    "gps": "gps-analyzer.py"
 }
