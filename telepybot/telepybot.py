@@ -3,6 +3,7 @@
 import logging
 
 from telegram.ext import CommandHandler, Updater
+from telegram import ParseMode
 
 from modulehandler import ModuleHandler
 
@@ -21,7 +22,6 @@ def start(bot, update):
 
 
 def help(bot, update):
-    text = ""
     try:
         msg = update.message.text.split(' ', 1)[1]
         text = module_handler.get_help(msg)
@@ -30,7 +30,7 @@ def help(bot, update):
                 "For example try: /help echo\n"
                 "Type /list to list all modules.")
 
-    bot.sendMessage(update.message.chat_id, text=text)
+    bot.sendMessage(update.message.chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
 
 
 def list(bot, update):
