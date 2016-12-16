@@ -13,11 +13,14 @@ except ImportError:
 # For raspberry pi
 if os.path.exists('/home/pi/Projects'):
     project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
-    download_path = os.path.abspath('/home/pi/Projects/telepybot/telepybot/.downloads')
+    download_path = os.path.abspath(
+        '/home/pi/Projects/telepybot/telepybot/.downloads')
 elif os.path.exists('C:/Users/alips/Projects'):
     # For home desktop windows
-    project_path = os.path.abspath('C:\\Users\\alips\\Projects\\flai.xyz\\assets')
-    download_path = os.path.abspath('C:/Users/alips/Projects/telepybot/telepybot/.downloads')
+    project_path = os.path.abspath(
+        'C:\\Users\\alips\\Projects\\flai.xyz\\assets')
+    download_path = os.path.abspath(
+        'C:/Users/alips/Projects/telepybot/telepybot/.downloads')
 else:
     print('No valid path structure')
     raise OSError
@@ -111,6 +114,7 @@ def parse_blog(bot, chat_id, zip_path, post_name):
     convert_images_to_imagegroup(post_path)
 
     #pb.push_note('Blog updated', filename)
+    commit_and_push(post_name)
     #git.commit_push(project_path, '[blog update]')
 
     bot.sendMessage(chat_id=chat_id, text='Blog pushed')
@@ -135,13 +139,10 @@ def extract_post(zippath, postname):
 
 
 def resize_images(path):
-    # Need root priviledges
-    #subprocess.call(["sudo", "modules/blog-image_resize.sh", path])
-    subprocess.call(["modules/blog-image_resize.sh", path])
+    subprocess.call(["sh", "modules/blog-image-resize.sh", path])
 
 
 def construct_meta_post(path, filename, blogpath):
-    print(os.path.join(path, 'post.txt'))
     with open(os.path.join(path, 'post.txt'), 'r') as post:
         text = post.read()
         title, trip, date_range, main_image = \
@@ -182,3 +183,14 @@ def convert_images_to_imagegroup(path):
 
     with open(os.path.join(path, 'post.txt'), 'w') as post:
         post.write('\n'.join(fixed_lines))
+
+
+def commit_and_push(post_name):
+    current_dir = os.getcwd()
+    os.chdir(project_path)
+    subprocess.call(['git', 'pull'])
+    subprocess.call(['git', 'add', '.'])
+    message = '[blog update] ({})'.format(post_name)
+    subprocess.call(['git', 'commit', '-m', message])
+    #subprocess.call(['git', 'push'])
+    os.chdir(current_dir)
