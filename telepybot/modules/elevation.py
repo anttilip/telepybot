@@ -213,6 +213,8 @@ def build_plot(distance, elevation_points, plot_mode):
     plt.tight_layout()
 
     fig.savefig('.tmp/latest_elevation.png', dpi=custom_dpi)
+    # Close plt window, figure and axis
+    plt.close()
     if convert_to_jpg:
         Image.open('.tmp/latest_elevation.png').save(
             '.tmp/latest_elevation.jpg', 'JPEG')

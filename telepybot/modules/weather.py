@@ -1,4 +1,4 @@
-"""Returns weather forecast for a location.
+"""*Returns weather forecast for a location.*
 
 This module can search weather reports using Wunderground API.
 Weather reports consist of a current weather in observation location,
@@ -7,12 +7,16 @@ the requested location. Module also features an interactive mode where user
 can search new locations relative to the original location.
 
 Usage:
+```
   /weather
   /weather Palo Alto, CA
+```
 
 Interactive mode:
+```
   [distance] [cardinal direction]
   100 NW  -  weather in 100km to northwest from original location
+```
 """
 import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
@@ -113,7 +117,7 @@ def handle_update(bot, update, update_queue, logger):
         update = update_queue.get()
         bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
         try:
-            distance, direction = update.message.text.split()
+            distance, direction = update.message.split()
             distance = int(distance)
             new_location = calculate_new_query(location, distance, direction)
             bot.sendMessage(

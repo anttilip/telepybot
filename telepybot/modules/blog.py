@@ -1,4 +1,16 @@
-# -*- coding: utf-8 -*-
+"""*Handles flai.xyz blog updates.*
+
+This module is designed to update flai.xyz cycling blog. Update is sent as
+a .zip or splitted file, e.g. .zip.1o3. Update is processed and pushed to
+[blogs assets repo](https://github.com/JaakkoLipsanen/assets/).
+
+Usage:
+```
+  /blog
+  > Send .zip file
+```
+"""
+
 from telegram import ChatAction
 import subprocess
 import zipfile
@@ -21,6 +33,12 @@ elif os.path.exists('C:/Users/alips/Projects'):
         'C:\\Users\\alips\\Projects\\flai.xyz\\assets')
     download_path = os.path.abspath(
         'C:/Users/alips/Projects/telepybot/telepybot/.downloads')
+elif os.path.exists('/mnt/c/Users/alips/Projects'):
+    # For windows 10 linux subsystem
+    project_path = os.path.abspath(
+        '/mnt/c/Users/alips/Projects/flai.xyz/assets')
+    download_path = os.path.abspath(
+        '/mnt/c/Users/alips/Projects/telepybot/telepybot/.downloads')
 else:
     print('No valid path structure')
     raise OSError
