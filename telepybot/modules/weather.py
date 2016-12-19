@@ -21,9 +21,9 @@ Interactive mode:
 import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
 
-from geopy.geocoders import Nominatim
 #from telegram import KeyboardButton, ParseMode, ReplyKeyboardMarkup
 import telegram
+from geopy.geocoders import Nominatim
 
 try:
     # For Python 3.0 and later
@@ -117,7 +117,7 @@ def handle_update(bot, update, update_queue, logger):
         update = update_queue.get()
         bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
         try:
-            distance, direction = update.message.split()
+            distance, direction = update.message.text.split()
             distance = int(distance)
             new_location = calculate_new_query(location, distance, direction)
             bot.sendMessage(
@@ -155,12 +155,14 @@ def construct_report(query):
     curr = text['current_observation']
 
     distance = calculate_distance(
-        float(query.split(',')[1]), float(query.split(',')[0]),
+        float(query.split(',')[1]),
+        float(query.split(',')[0]),
         float(curr['observation_location']['longitude']),
         float(curr['observation_location']['latitude']))
 
     bearing = calculate_direction(
-        float(query.split(',')[0]), float(query.split(',')[1]),
+        float(query.split(',')[0]),
+        float(query.split(',')[1]),
         float(curr['observation_location']['latitude']),
         float(curr['observation_location']['longitude']))
 
@@ -219,14 +221,16 @@ def calculate_direction(lat1, lon1, lat2, lon2):
 
 
 def calculate_new_query(old_query, distance, direction):
-    angle = {'N': 0,
-             'NE': pi / 4,
-             'E': pi / 2,
-             'SE': 3 * pi / 4,
-             'S': pi,
-             'SW': 5 * pi / 4,
-             'W': 3 * pi / 2,
-             'NW': 7 * pi / 4}
+    angle = {
+        'N': 0,
+        'NE': pi / 4,
+        'E': pi / 2,
+        'SE': 3 * pi / 4,
+        'S': pi,
+        'SW': 5 * pi / 4,
+        'W': 3 * pi / 2,
+        'NW': 7 * pi / 4
+    }
     r = 6371  # earth radius in km
     dist = float(distance) / r  # angular distance
 
@@ -239,8 +243,8 @@ def calculate_new_query(old_query, distance, direction):
             direction.upper()]))
 
     new_lon = old_lon + atan2(
-        sin((angle[direction.upper()])) * sin(dist) * cos(old_lat), cos(dist) -
-        sin(old_lat) * sin(new_lat))
+        sin((angle[direction.upper()])) * sin(dist) * cos(old_lat),
+        cos(dist) - sin(old_lat) * sin(new_lat))
 
     return '{},{}'.format(degrees(new_lat), degrees(new_lon))
 
