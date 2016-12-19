@@ -14,10 +14,14 @@ Usage:
   [send gps file using telegram client]
 ```
 """
-from telegram import ChatAction
 import os
-import sys
 import subprocess
+import sys
+
+import googlemaps
+
+from telegram import ChatAction
+
 try:
     # For Python 3.0 and later
     from urllib.parse import urlencode
@@ -35,13 +39,15 @@ if os.path.exists('/home/pi/Projects/flai.xyz/assets'):
 elif os.path.exists('C:/Users/alips/Projects/flai.xyz/assets'):
     # home windows 10 desktop
     routes_path = os.path.abspath(
-        'C:/Users/alips/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016')
+        'C:/Users/alips/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016'
+    )
     download_path = os.path.abspath(
         'C:/Users/alips/Projects/telepybot/telepybot/.downloads')
 elif os.path.exists('/mnt/c/Users/alips/Projects/flai.xyz/assets'):
     # home windows 10 desktop
     routes_path = os.path.abspath(
-        '/mnt/c/Users/alips/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016')
+        '/mnt/c/Users/alips/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016'
+    )
     download_path = os.path.abspath(
         '/mnt/c/Users/alips/Projects/telepybot/telepybot/.downloads')
 else:
@@ -101,6 +107,8 @@ def handle_gps(bot, chat_id, update):
         #pb.push_note('GPS-analyzer', text)
         bot.sendMessage(chat_id=chat_id, text=text)
 
+    gmaps = googlemaps.Client(key=get_gmaps_API_key())
+    add_elevations(lines, gmaps)
     add_night(lines)
     save_to_file(lines)
 
@@ -118,6 +126,15 @@ def download_file(update, data):
     urlopener.retrieve(url, file_path)
 
     return file_path
+
+
+def add_elevations(lines, gmaps):
+    for i in range(len(lines)):
+        lat, lng = lines[i].split()
+        result = gmaps.elevation((float(lat), float(lng)))
+        elevation = int(round(result[0]['elevation']))
+        print(elevation)
+        lines[i] += ' ' + str(elevation)
 
 
 def add_night(lines):
@@ -171,3 +188,8 @@ def commit_and_push():
     subprocess.call(['git', 'commit', '-m', message])
     subprocess.call(['git', 'push'])
     os.chdir(current_dir)
+
+
+def get_gmaps_API_key():
+    with open('auth/gmapsAuth.txt', 'r') as auth:
+        return auth.read()
