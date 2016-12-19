@@ -169,5 +169,5 @@ def commit_and_push():
     subprocess.call(['git', 'add', '.'])
     message = '[route update]'
     subprocess.call(['git', 'commit', '-m', message])
-    #subprocess.call(['git', 'push'])
+    subprocess.call(['git', 'push'])
     os.chdir(current_dir)

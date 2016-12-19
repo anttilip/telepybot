@@ -210,5 +210,5 @@ def commit_and_push(post_name):
     subprocess.call(['git', 'add', '.'])
     message = '[blog update] ({})'.format(post_name)
     subprocess.call(['git', 'commit', '-m', message])
-    #subprocess.call(['git', 'push'])
+    subprocess.call(['git', 'push'])
     os.chdir(current_dir)
