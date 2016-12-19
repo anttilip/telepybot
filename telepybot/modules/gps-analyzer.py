@@ -67,6 +67,10 @@ def handle_update(bot, update, update_queue, **kwargs):
             return
         elif update.message.text.lower() == "done":
             update_only_night()
+        elif update.message.text.startswith('/'):
+            # User accesses another bot
+            update_queue.put(update)
+            break
         elif update.message.text.lower() != "":
             global night_type
             night_type = update.message.text.lower()
@@ -75,10 +79,6 @@ def handle_update(bot, update, update_queue, **kwargs):
                     "Send gps file or type 'done' to send just "
                     "location.").format(night_type)
             bot.sendMessage(chat_id=chat_id, text=text)
-        elif update.message.text.startswith('/'):
-            # User accesses another bot
-            update_queue.put(update)
-            break
         else:
             bot.sendMessage(
                 chat_id=chat_id, text="Night type must start with 't' or 'h'")
