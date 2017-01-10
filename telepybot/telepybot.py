@@ -23,11 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 def start(bot, update):
-    text = ("Hi!")
+    """Command handler that gets triggered when user begins conversation."""
+
+    text = "Hi!"
     bot.sendMessage(update.message.chat_id, text=text)
 
 
 def help(bot, update):
+    """Find help and examples for a module."""
+
     try:
         msg = update.message.text.split(' ', 1)[1]
         text = module_handler.get_help(msg)
@@ -36,10 +40,13 @@ def help(bot, update):
                 "For example try: /help echo\n"
                 "Type /list to list all modules.")
 
-    bot.sendMessage(update.message.chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
+    bot.sendMessage(
+        update.message.chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
 
 
 def list(bot, update):
+    """List all available modules."""
+
     modules = module_handler.module_summary()
     text = ''
     for name, description in modules:
@@ -49,6 +56,8 @@ def list(bot, update):
 
 
 def reload(bot, update):
+    """Reload the bot, including all modules."""
+
     main()
     bot.sendMessage(update.message.chat_id, text="Modules reloaded")
 

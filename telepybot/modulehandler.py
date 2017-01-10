@@ -22,6 +22,8 @@ class ModuleHandler(Handler):
         self.pass_args = pass_args
 
     def check_update(self, update):
+        """Check if update triggers any modules."""
+
         if isinstance(update, Update) and update.message:
             message = update.message
             try:
@@ -35,6 +37,7 @@ class ModuleHandler(Handler):
             return False
 
     def handle_update(self, update, dispatcher):
+        """Pass update to a module along with optional arguments."""
         optional_args = self.collect_optional_args(dispatcher)
         optional_args['logger'] = self.logger
 
@@ -56,8 +59,9 @@ class ModuleHandler(Handler):
         return module.handle_update(dispatcher.bot, update, **optional_args)
 
     def get_modules(self):
-        """Loads reads json file and import found modules.
-        Returns dictionaries containing the modules
+        """Load json file and import found modules.
+
+        Return dictionaries containing the modules.
         """
 
         module_dict = {}
@@ -76,6 +80,8 @@ class ModuleHandler(Handler):
         return modules
 
     def module_summary(self):
+        """Fetch first docstring line from modules."""
+
         modules = []
         for key in self.modules:
             try:
@@ -85,6 +91,8 @@ class ModuleHandler(Handler):
         return modules
 
     def get_help(self, key):
+        """Fetch whole docstring from beginning of module."""
+
         try:
             text = self.modules[key].__doc__
             if not text:
