@@ -16,6 +16,7 @@ class ModuleHandler(Handler):
             None,
             pass_update_queue=pass_update_queue,
             pass_job_queue=pass_job_queue)
+
         self.logger = logger
         self.modules = self.get_modules()
         self.pass_args = pass_args

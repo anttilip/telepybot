@@ -48,6 +48,16 @@ api_key = config.get('elevation', 'gmapsApiKey')
 
 
 def handle_update(bot, update, update_queue, **kwargs):
+    """Process message from update and send elevation infromation.
+
+    This is the main function that modulehander calls.
+
+    Args:
+        bot (telegram.Bot): Telegram bot itself
+        update (telegram.Update): Update that will be processed
+        update_queue (Queue): Queue containing all incoming and unhandled updates
+        kwargs: All unused keyword arguments. See more from python-telegram-bot
+    """
     chat_id = update.message.chat_id
     origin = None
     destination = None
@@ -111,6 +121,20 @@ def handle_update(bot, update, update_queue, **kwargs):
 
 
 def elevate(origin, destination, via_locs, plot_mode):
+    """Get elevation data from Google Maps Elevation api and construct a report
+
+    Receives origin, destination and possibly intermediate location points,
+    finds a route using Google Maps Directions API. Gets altitude points for
+    that route from Google Maps Elevation API. Calculates a few statistics and
+    sends them to user along with a graph showing altitude along the route.
+
+    Args:
+        origin (str): Origin coordinates, e.g. "60.161928,24.951688"
+        destination (str): Destination coordinates, e.g. "61.504956,23.743120"
+        via_locs (list): Additional intermediate coordinates
+        plot_mode (str): Preset mode for graph
+    """
+
     params = {'origin': origin.encode('utf8'),
               'destination': destination.encode('utf8'),
               'waypoints': '|'.join('via:' + str(x) for x in via_locs),
@@ -169,7 +193,7 @@ def elevate(origin, destination, via_locs, plot_mode):
         # walking
         mode = '2'
 
-# Construct Google Maps link
+    # Construct Google Maps link
     gmaps = 'https://www.google.com/maps/dir/%s/%s/%s/data=!4m2!4m1!3e%s' % (
         origin, '/'.join(str(x) for x in via_locs), destination, mode)
 
@@ -185,6 +209,8 @@ def elevate(origin, destination, via_locs, plot_mode):
 
 
 def build_plot(distance, elevation_points, plot_mode):
+    """Build the elevation graph using matplotlib."""
+
     if plot_mode == 'tall':
         custom_dpi = 75
         size = (600 / custom_dpi, 200 / custom_dpi)
@@ -225,6 +251,7 @@ def build_plot(distance, elevation_points, plot_mode):
 
 
 def calculate_route_stats(elevation_points):
+    """Calculate few statistics from elevation points."""
     total_ascent = 0
     total_descent = 0
     curr = elevation_points[0]
@@ -240,6 +267,8 @@ def calculate_route_stats(elevation_points):
 
 
 def parse_location(loc, destination=None):
+    """Convert location to string, e.g. "60.161928,24.951688".
+    """
     if isinstance(loc, Location):
         return str(loc.latitude) + ',' + str(loc.longitude)
     elif destination:

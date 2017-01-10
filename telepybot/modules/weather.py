@@ -34,13 +34,22 @@ except ImportError:
     from urllib import urlopen
     from ConfigParser import ConfigParser
 
-
 config = ConfigParser()
 config.read('telepybot.conf')
 api_key = config.get('weather', 'wundergroundApiKey')
 
 
 def handle_update(bot, update, update_queue, logger):
+    """Get weather forecast for location from update.
+
+    This is the main function that modulehander calls.
+
+    Args:
+        bot (telegram.Bot): Telegram bot itself
+        update (telegram.Update): Update that will be processed
+        update_queue (Queue): Queue containing all incoming and unhandled updates
+        logger (Logger): Logger that writes to bots own log file.
+    """
     chat_id = update.message.chat_id
     bot.sendChatAction(chat_id, action=telegram.ChatAction.TYPING)
     try:
@@ -142,8 +151,7 @@ def handle_update(bot, update, update_queue, logger):
 
 
 def construct_report(query):
-    with open('auth/wundergroundAuth.txt', 'r') as auth:
-        api_key = auth.read()
+    """Construct the weather report that will be sent to user."""
 
     response = urlopen('http://api.wunderground.com/api/' + api_key +
                        '/conditions/forecast/alert/q/' + query + '.json')
@@ -162,14 +170,12 @@ def construct_report(query):
     curr = text['current_observation']
 
     distance = calculate_distance(
-        float(query.split(',')[1]),
-        float(query.split(',')[0]),
+        float(query.split(',')[1]), float(query.split(',')[0]),
         float(curr['observation_location']['longitude']),
         float(curr['observation_location']['latitude']))
 
     bearing = calculate_direction(
-        float(query.split(',')[0]),
-        float(query.split(',')[1]),
+        float(query.split(',')[0]), float(query.split(',')[1]),
         float(curr['observation_location']['latitude']),
         float(curr['observation_location']['longitude']))
 
@@ -228,6 +234,8 @@ def calculate_direction(lat1, lon1, lat2, lon2):
 
 
 def calculate_new_query(old_query, distance, direction):
+    """Find new location from interactive mode."""
+
     angle = {
         'N': 0,
         'NE': pi / 4,
@@ -250,11 +258,14 @@ def calculate_new_query(old_query, distance, direction):
             direction.upper()]))
 
     new_lon = old_lon + atan2(
-        sin((angle[direction.upper()])) * sin(dist) * cos(old_lat),
-        cos(dist) - sin(old_lat) * sin(new_lat))
+        sin((angle[direction.upper()])) * sin(dist) * cos(old_lat), cos(dist) -
+        sin(old_lat) * sin(new_lat))
 
     return '{},{}'.format(degrees(new_lat), degrees(new_lon))
 
 
 def parse_location(location):
+    """Convert location to string, e.g. "60.161928,24.951688"
+    """
+
     return str(location.latitude) + ',' + str(location.longitude)

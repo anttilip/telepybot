@@ -9,6 +9,16 @@ Type 'cancel' to stop echoing.
 
 
 def handle_update(bot, update, update_queue, **kwargs):
+    """Echo messages that user sends.
+
+    This is the main function that modulehander calls.
+
+    Args:
+        bot (telegram.Bot): Telegram bot itself
+        update (telegram.Update): Update that will be processed
+        update_queue (Queue): Queue containing all incoming and unhandled updates
+        kwargs: All unused keyword arguments. See more from python-telegram-bot
+    """
     try:
         # e.g. message is "/echo I'm talking to a bot!"
         text = update.message.text.split(' ', 1)[1]

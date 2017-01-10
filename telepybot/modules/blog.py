@@ -31,6 +31,16 @@ download_path = config.get('blog', 'downloadPath')
 
 
 def handle_update(bot, update, update_queue, **kwargs):
+    """Process and update blog post from update.
+
+    This is the main function that modulehander calls.
+
+    Args:
+        bot (telegram.Bot): Telegram bot itself
+        update (telegram.Update): Update that will be processed
+        update_queue (Queue): Queue containing all incoming and unhandled updates
+        kwargs: All unused keyword arguments. See more from python-telegram-bot
+    """
     chat_id = update.message.chat_id
     bot.sendMessage(chat_id=chat_id, text="Send blog file")
 
@@ -42,6 +52,7 @@ def handle_update(bot, update, update_queue, **kwargs):
 
 
 def get_zip(bot, chat_id, update_queue):
+    """Fetch zip parts from update and merge them to blog post."""
     zip_parts = None
     while True:
         update = update_queue.get()
@@ -97,6 +108,7 @@ def get_zip_part_index(document):
 
 
 def combine_zip(splits):
+    """Combine zip parts to a whole .zip file."""
     merged_path = os.path.join(download_path, 'merged.zip')
     with open(merged_path, 'wb') as merged:
         for file in splits:
@@ -107,24 +119,26 @@ def combine_zip(splits):
 
 
 def parse_blog(bot, chat_id, zip_path, post_name):
+    """Process the blog post."""
     post_path = extract_post(zip_path, post_name)
     blog_path = os.path.dirname(post_path)
 
     bot.sendMessage(
         chat_id=chat_id, text="Converting images, this may take a while.")
+
     resize_images(post_path)
 
     construct_meta_post(post_path, post_name, blog_path)
     convert_images_to_imagegroup(post_path)
 
-    #pb.push_note('Blog updated', filename)
+    # Push changes to github
     commit_and_push(post_name)
-    #git.commit_push(project_path, '[blog update]')
 
     bot.sendMessage(chat_id=chat_id, text='Blog pushed')
 
 
 def download_file(update, data):
+    """Downloads file from update."""
     filename = update.message.document.file_name
     url = data.file_path
     file_path = os.path.join(download_path, filename)
@@ -136,17 +150,22 @@ def download_file(update, data):
 
 
 def extract_post(zippath, postname):
+    """Extract .zip file to a post folder."""
     blogpath = os.path.join(project_path, 'cycle', 'blog', 'posts')
+
     with zipfile.ZipFile(zippath, 'r') as zipped:
         zipped.extractall(os.path.join(blogpath, postname))
+
     return os.path.join(blogpath, postname)
 
 
 def resize_images(path):
+    """Execute bash script that resizes images to several different sizes."""
     subprocess.call(["sh", "modules/blog-image-resize.sh", path])
 
 
 def construct_meta_post(path, filename, blogpath):
+    """Write posts meta information to posts.txt"""
     with open(os.path.join(path, 'post.txt'), 'r') as post:
         text = post.read()
         title, trip, date_range, main_image = \
@@ -160,6 +179,7 @@ def construct_meta_post(path, filename, blogpath):
 
 
 def convert_images_to_imagegroup(path):
+    """Edit convert sequental images in post.txt to a image group."""
     with open(os.path.join(path, 'post.txt'), 'r') as post:
         lines = post.read().split('\n')
 
@@ -190,6 +210,7 @@ def convert_images_to_imagegroup(path):
 
 
 def commit_and_push(post_name):
+    """Commits new blog post and pushes it to github."""
     current_dir = os.getcwd()
     os.chdir(project_path)
     subprocess.call(['git', 'pull'])

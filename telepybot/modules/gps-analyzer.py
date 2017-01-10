@@ -41,6 +41,16 @@ night_type = config.get('gps-analyzer', 'defaultNightType')
 
 
 def handle_update(bot, update, update_queue, **kwargs):
+    """Analyze and update gps file from update.
+
+    This is the main function that modulehander calls.
+
+    Args:
+        bot (telegram.Bot): Telegram bot itself
+        update (telegram.Update): Update that will be processed
+        update_queue (Queue): Queue containing all incoming and unhandled updates
+        kwargs: All unused keyword arguments. See more from python-telegram-bot
+    """
     chat_id = update.message.chat_id
     text = 'Send your gps file or change the night type, e.g. "h" or "t c".'
     bot.sendMessage(chat_id=chat_id, text=text)
@@ -73,6 +83,7 @@ def handle_update(bot, update, update_queue, **kwargs):
 
 
 def handle_gps(bot, chat_id, update):
+    """Process the gps file and update trips route."""
     document = update.message.document
 
     path = download_file(update, bot.getFile(document.file_id))
@@ -99,6 +110,7 @@ def handle_gps(bot, chat_id, update):
 
 
 def download_file(update, data):
+    """Downloads the gps file from update."""
     filename = update.message.document.file_name
     url = data.file_path
     file_path = os.path.join(download_path, filename)
@@ -110,6 +122,7 @@ def download_file(update, data):
 
 
 def add_elevations(lines, gmaps):
+    """Calculate altitude points for each gps coordinate."""
     for i in range(len(lines)):
         lat, lng = lines[i].split()
         result = gmaps.elevation((float(lat), float(lng)))
@@ -118,11 +131,13 @@ def add_elevations(lines, gmaps):
 
 
 def add_night(lines):
+    """Add night in the end of gps file."""
     lines.append('n ' + night_type)
     return lines
 
 
 def save_to_file(lines):
+    """Append and save new gps file to trips route.txt."""
     route_path = os.path.join(routes_path, 'route.txt')
     with open(route_path, 'a') as route:
         formatted_lines = [line.strip() for line in lines]
@@ -130,6 +145,10 @@ def save_to_file(lines):
 
 
 def check_if_file_is_valid(lines):
+    """Check that gps file does not have invalid syntax.
+
+    If gps file does have invalid syntax, send line nubmer and error to user.
+    """
     for i in range(len(lines)):
         try:
             # Checks if line is a coordinate pair, raises ValueError if not
@@ -160,6 +179,7 @@ def update_only_night():
 
 
 def commit_and_push():
+    """Commits new blog post and pushes it to github."""
     current_dir = os.getcwd()
     os.chdir(routes_path)
     subprocess.call(['git', 'pull'])
