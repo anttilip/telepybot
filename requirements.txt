@@ -1,2 +1,17 @@
-geopy==1.11.0
-python_telegram_bot==5.1.0
+# telepybot/modules/elevation.py: 28
+Pillow == 4.0.0
+
+# telepybot/modules/elevation.py: 27
+# telepybot/modules/weather.py: 26
+geopy == 1.11.0
+
+# telepybot/modules/gps-analyzer.py: 21
+googlemaps == 2.4.5
+
+# telepybot/modules/elevation.py: 22,25
+matplotlib == 1.5.3
+
+# telepybot/modules/elevation.py: 26
+numpy == 1.11.3
+
+python_telegram_bot == 5.3.0
