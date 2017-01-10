@@ -1,8 +1,20 @@
 import subprocess
+try:
+    # Python 3+
+    from configparser import ConfigParser
+except ImportError:
+    # Python 2
+    from ConfigParser import ConfigParser
+
+config = ConfigParser()
+config.read('telepybot.conf')
+allowed_users = config.get('home', 'allowedUsers').split(',')
+devices_list_path = config.get('home', 'deviceListPath')
+log_path = config.get('home', 'logPath')
 
 
 def handle_update(bot, update, **kwargs):
-    if not user_allowed(update.message.from_user.username):
+    if update.message.from_user.username not in allowed_users:
         return
 
     command = update.message.text.lower()
@@ -19,7 +31,7 @@ def handle_update(bot, update, **kwargs):
 
 def show_home():
     devices_home = ''
-    with open('.tmp/CurrentlyInNetwork.txt', 'r') as home:
+    with open(devices_list_path, 'r') as home:
         devices_home = home.read()
 
     if devices_home == '':
@@ -29,17 +41,9 @@ def show_home():
 
 
 def show_log():
-    return tail('.tmp/maclog.txt', -20)
+    return tail(log_path, -20)
 
 
 def tail(filename, n):
     proc_input = ['tail', str(n), filename]
     return subprocess.check_output(proc_input).decode('utf-8')
-
-
-def user_allowed(user):
-    allowed_users = []
-    with open('.tmp/.home_allowed', 'r') as f:
-        allowed_users = f.read().split()
-
-    return user in allowed_users

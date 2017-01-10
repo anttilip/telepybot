@@ -26,36 +26,18 @@ try:
     # For Python 3.0 and later
     from urllib.parse import urlencode
     from urllib.request import URLopener
+    from configparser import ConfigParser
 except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlencode, URLopener
+    # Fall back to Python 2's urllib
+    from urllib import urlencode, URLopener
+    from ConfigParser import ConfigParser
 
-if os.path.exists('/home/pi/Projects/flai.xyz/assets'):
-    # raspberry pi
-    routes_path = os.path.abspath(
-        '/home/pi/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016')
-    download_path = os.path.abspath(
-        '/home/pi/Projects/telepybot/telepybot/.downloads')
-elif os.path.exists('C:/Users/alips/Projects/flai.xyz/assets'):
-    # home windows 10 desktop
-    routes_path = os.path.abspath(
-        'C:/Users/alips/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016'
-    )
-    download_path = os.path.abspath(
-        'C:/Users/alips/Projects/telepybot/telepybot/.downloads')
-elif os.path.exists('/mnt/c/Users/alips/Projects/flai.xyz/assets'):
-    # home windows 10 desktop
-    routes_path = os.path.abspath(
-        '/mnt/c/Users/alips/Projects/flai.xyz/assets/cycle/routes/israel&jordan2016'
-    )
-    download_path = os.path.abspath(
-        '/mnt/c/Users/alips/Projects/telepybot/telepybot/.downloads')
-else:
-    print("No valid assets folder found.")
-    raise OSError
-
-# Default night type is 't' as in tent
-night_type = 't'
+config = ConfigParser()
+config.read('telepybot.conf')
+api_key = config.get('gps-analyzer', 'gmapsApiKey')
+routes_path = config.get('gps-analyzer', 'routesPath')
+download_path = config.get('gps-analyzer', 'downloadPath')
+night_type = config.get('gps-analyzer', 'defaultNightType')
 
 
 def handle_update(bot, update, update_queue, **kwargs):
@@ -91,7 +73,6 @@ def handle_update(bot, update, update_queue, **kwargs):
 
 
 def handle_gps(bot, chat_id, update):
-    print('asd')
     document = update.message.document
 
     path = download_file(update, bot.getFile(document.file_id))
@@ -133,7 +114,6 @@ def add_elevations(lines, gmaps):
         lat, lng = lines[i].split()
         result = gmaps.elevation((float(lat), float(lng)))
         elevation = int(round(result[0]['elevation']))
-        print(elevation)
         lines[i] += ' ' + str(elevation)
 
 
@@ -188,8 +168,3 @@ def commit_and_push():
     subprocess.call(['git', 'commit', '-m', message])
     subprocess.call(['git', 'push'])
     os.chdir(current_dir)
-
-
-def get_gmaps_API_key():
-    with open('auth/gmapsAuth.txt', 'r') as auth:
-        return auth.read()

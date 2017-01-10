@@ -33,14 +33,18 @@ try:
     # For Python 3.0 and later
     from urllib.request import urlopen
     from urllib.parse import urlencode
+    from configparser import ConfigParser
 except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen
+    # Fall back to Python 2's urllib
+    from urllib import urlopen
     from urllib import urlencode
+    from ConfigParser import ConfigParser
 
 # yapf: enable
 
-# TODO: make graph wider or width scales with distance
+config = ConfigParser()
+config.read('telepybot.conf')
+api_key = config.get('elevation', 'gmapsApiKey')
 
 
 def handle_update(bot, update, update_queue, **kwargs):
@@ -81,8 +85,7 @@ def handle_update(bot, update, update_queue, **kwargs):
                 bot.sendMessage(chat_id=chat_id, text='Send via location')
                 next_is_via = True
                 continue
-            geolocator = GoogleV3(
-                api_key='AIzaSyDSNzqPIM-JzwXVG-MmOZLTZ9aHz4X0KLo')
+            geolocator = GoogleV3(api_key=api_key)
             location = geolocator.geocode(update.message.text)
 
         if next_is_via:
@@ -108,8 +111,6 @@ def handle_update(bot, update, update_queue, **kwargs):
 
 
 def elevate(origin, destination, via_locs, plot_mode):
-    api_key = get_api_key()
-
     params = {'origin': origin.encode('utf8'),
               'destination': destination.encode('utf8'),
               'waypoints': '|'.join('via:' + str(x) for x in via_locs),
@@ -236,11 +237,6 @@ def calculate_route_stats(elevation_points):
         curr = point
 
     return int(total_ascent), int(total_descent)
-
-
-def get_api_key():
-    with open('auth/gmapsAuth.txt', 'r') as auth:
-        return auth.read()
 
 
 def parse_location(loc, destination=None):

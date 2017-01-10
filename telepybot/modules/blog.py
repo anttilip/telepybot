@@ -18,30 +18,16 @@ import os
 try:
     # For Python 3.0 and later
     from urllib.request import URLopener
+    from configparser import ConfigParser
 except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib2 import URLopener
+    # Fall back to Python 2's urllib2 and ConfigParser
+    from urllib import URLopener
+    from ConfigParser import ConfigParser
 
-# For raspberry pi
-if os.path.exists('/home/pi/Projects'):
-    project_path = os.path.abspath('/home/pi/Projects/flai.xyz/assets/')
-    download_path = os.path.abspath(
-        '/home/pi/Projects/telepybot/telepybot/.downloads')
-elif os.path.exists('C:/Users/alips/Projects'):
-    # For home desktop windows
-    project_path = os.path.abspath(
-        'C:\\Users\\alips\\Projects\\flai.xyz\\assets')
-    download_path = os.path.abspath(
-        'C:/Users/alips/Projects/telepybot/telepybot/.downloads')
-elif os.path.exists('/mnt/c/Users/alips/Projects'):
-    # For windows 10 linux subsystem
-    project_path = os.path.abspath(
-        '/mnt/c/Users/alips/Projects/flai.xyz/assets')
-    download_path = os.path.abspath(
-        '/mnt/c/Users/alips/Projects/telepybot/telepybot/.downloads')
-else:
-    print('No valid path structure')
-    raise OSError
+config = ConfigParser()
+config.read('telepybot.conf')
+project_path = config.get('blog', 'projectPath')
+download_path = config.get('blog', 'downloadPath')
 
 
 def handle_update(bot, update, update_queue, **kwargs):

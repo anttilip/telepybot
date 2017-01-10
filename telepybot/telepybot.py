@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
+try:
+    # Python 3+
+    from configparser import ConfigParser
+except ImportError:
+    # Python 2
+    from ConfigParser import ConfigParser
 
 from telegram.ext import CommandHandler, Updater
 from telegram import ParseMode
@@ -53,8 +59,9 @@ def error(bot, update, error):
 
 def main():
     # Read token and create the EventHandler
-    with open('auth/token.txt', 'r') as f:
-        token = f.read()
+    config = ConfigParser()
+    config.read('telepybot.conf')
+    token = config.get('default', 'telegramToken')
 
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(token)
